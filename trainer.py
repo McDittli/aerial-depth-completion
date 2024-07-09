@@ -406,3 +406,38 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
     return final_result
 
 
+def predict(val_loader, model, output_folder=None):
+    model.eval()  # switch to evaluation mode
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    num_total_samples = len(val_loader)
+    print(f"Predicting {num_total_samples} samples...")
+
+    for i, (input, target, scale) in enumerate(val_loader):
+        data_time = time.time()
+
+        input = input.cpu()
+        target = target.cpu()
+
+        with torch.no_grad():
+            prediction = model(input)
+
+        # scale the predictions back
+        pred_depth = prediction[0].cpu().numpy()
+        pred_confidence = prediction[1].cpu().numpy() if prediction[1] is not None else None
+        pred_final = prediction[2].cpu().numpy() if prediction[2] is not None else None
+
+        for cb in range(pred_depth.shape[0]):
+            pred_depth[cb, :, :] *= scale[cb].item()
+            if pred_final is not None:
+                pred_final[cb, :, :] *= scale[cb].item()
+            input[cb, 3:4, :, :] *= scale[cb].item()
+
+            pred_img = pred_depth[cb, 0, :, :]
+            img_filename = os.path.join(output_folder, f"prediction_{i}_{cb}.png")
+            utils.save_image(pred_img, img_filename)
+
+        gpu_time = time.time() - data_time
+        print(f"Sample {i}/{num_total_samples}, Time: {gpu_time:.4f} sec")
