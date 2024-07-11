@@ -311,49 +311,40 @@ class Rotate(object):
         return itpl.rotate(img, self.angle, reshape=False, prefilter=False, order=0)
 
 
-# class Resize(object):
-#     """Resize the the given ``numpy.ndarray`` to the given size.
-#     Args:
-#         size (sequence or int): Desired output size. If size is a sequence like
-#             (h, w), output size will be matched to this. If size is an int,
-#             smaller edge of the image will be matched to this number.
-#             i.e, if height > width, then image will be rescaled to
-#             (size * height / width, size)
-#         interpolation (int, optional): Desired interpolation. Default is
-#             ``PIL.Image.BILINEAR``
-#     """
-
-#     def __init__(self, size, interpolation='nearest'):
-#         assert isinstance(size, int) or isinstance(size, float) or \
-#                (isinstance(size, collections.Iterable) and len(size) == 2)
-#         self.size = size
-#         self.interpolation = interpolation
-
-#     def __call__(self, img):
-#         """
-#         Args:
-#             img (PIL Image): Image to be scaled.
-#         Returns:
-#             PIL Image: Rescaled image.
-#         """
-#         if img.ndim == 3:
-#             return misc.imresize(img, self.size, self.interpolation)
-#         elif img.ndim == 2:
-#             return misc.imresize(img, self.size, self.interpolation, 'F')
-#         else:
-#             RuntimeError('img should be ndarray with 2 or 3 dimensions. Got {}'.format(img.ndim))
-
 class Resize(object):
+    """Resize the the given ``numpy.ndarray`` to the given size.
+    Args:
+        size (sequence or int): Desired output size. If size is a sequence like
+            (h, w), output size will be matched to this. If size is an int,
+            smaller edge of the image will be matched to this number.
+            i.e, if height > width, then image will be rescaled to
+            (size * height / width, size)
+        interpolation (int, optional): Desired interpolation. Default is
+            ``PIL.Image.BILINEAR``
+    """
+    
     def __init__(self, size, interpolation=Image.Resampling.BILINEAR):
-        self.size = (int(size[0]), int(size[1])) if isinstance(size, (tuple, list)) else (int(size), int(size))
+        self.size = size
         self.interpolation = interpolation
 
     def __call__(self, img):
         if isinstance(img, np.ndarray):
             img = Image.fromarray(img)
-        img = img.resize(self.size, self.interpolation)
+
+        if isinstance(self.size, int):
+            # Keep aspect ratio
+            w, h = img.size
+            if w < h:
+                new_w = self.size
+                new_h = int(self.size * h / w)
+            else:
+                new_h = self.size
+                new_w = int(self.size * w / h)
+            img = img.resize((new_w, new_h), self.interpolation)
+        else:
+            img = img.resize((self.size[1], self.size[0]), self.interpolation)
+
         return np.array(img)
-    
 
 class CenterCrop(object):
     """Crops the given ``numpy.ndarray`` at the center.

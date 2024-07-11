@@ -2,7 +2,6 @@ import numpy as np
 import math
 import dataloaders.transforms as transforms
 from dataloaders.dataloader_ext import MyDataloaderExt,Modality,SeqMyDataloaderExt
-from PIL import Image
 
 #iheight, iwidth = 480, 752 # raw image size
 
@@ -77,12 +76,8 @@ class VISIMDataset(MyDataloaderExt):
         iheight = attrib_list['gt_depth'].shape[0]
         iwidth = attrib_list['gt_depth'].shape[1]
 
-        # transform = transforms.Compose([
-        #     transforms.Resize(240.0 / iheight),
-        #     transforms.CenterCrop(self.output_size),
-        # ])
         transform = transforms.Compose([
-            transforms.Resize((int(240.0 / iheight * iheight), int(240.0 / iwidth * iwidth)), interpolation=Image.Resampling.BILINEAR),
+            transforms.Resize((240, 240 * iwidth // iheight)),  # Maintain aspect ratio
             transforms.CenterCrop(self.output_size),
         ])
 
