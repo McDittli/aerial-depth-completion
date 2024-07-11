@@ -322,29 +322,27 @@ class Resize(object):
         interpolation (int, optional): Desired interpolation. Default is
             ``PIL.Image.BILINEAR``
     """
-    
-    def __init__(self, size, interpolation=Image.Resampling.BILINEAR):
+
+    def __init__(self, size, interpolation='nearest'):
+        assert isinstance(size, int) or isinstance(size, float) or \
+               (isinstance(size, collections.Iterable) and len(size) == 2)
         self.size = size
         self.interpolation = interpolation
 
     def __call__(self, img):
-        if isinstance(img, np.ndarray):
-            img = Image.fromarray(img)
-
-        if isinstance(self.size, int):
-            # Keep aspect ratio
-            w, h = img.size
-            if w < h:
-                new_w = self.size
-                new_h = int(self.size * h / w)
-            else:
-                new_h = self.size
-                new_w = int(self.size * w / h)
-            img = img.resize((new_w, new_h), self.interpolation)
+        """
+        Args:
+            img (PIL Image): Image to be scaled.
+        Returns:
+            PIL Image: Rescaled image.
+        """
+        if img.ndim == 3:
+            return misc.imresize(img, self.size, self.interpolation)
+        elif img.ndim == 2:
+            return misc.imresize(img, self.size, self.interpolation, 'F')
         else:
-            img = img.resize((self.size[1], self.size[0]), self.interpolation)
+            RuntimeError('img should be ndarray with 2 or 3 dimensions. Got {}'.format(img.ndim))
 
-        return np.array(img)
 
 class CenterCrop(object):
     """Crops the given ``numpy.ndarray`` at the center.

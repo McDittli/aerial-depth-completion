@@ -77,7 +77,7 @@ class VISIMDataset(MyDataloaderExt):
         iwidth = attrib_list['gt_depth'].shape[1]
 
         transform = transforms.Compose([
-            transforms.Resize((240, 240 * iwidth // iheight)),  # Maintain aspect ratio
+            transforms.Resize(240.0 / iheight),
             transforms.CenterCrop(self.output_size),
         ])
 

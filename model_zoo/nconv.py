@@ -17,13 +17,10 @@ import math
 
 # The proposed Normalized Convolution Layer
 class NConv2d(_ConvNd):
-    def __init__(self, in_channels, out_channels, kernel_size, pos_fn='softplus', init_method='k', stride=1, padding=0, dilation=1, groups=1, bias=True, padding_mode='zeros'):
+    def __init__(self, in_channels, out_channels, kernel_size, pos_fn='softplus', init_method='k', stride=1, padding=0, dilation=1, groups=1, bias=True):
         
-        if isinstance(padding, int):
-            padding = (padding, padding)
-
         # Call _ConvNd constructor
-        super(NConv2d, self).__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, False, 0, groups, bias, padding_mode)
+        super(NConv2d, self).__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, False, 0, groups, bias)
         
         self.eps = 1e-20
         self.pos_fn = pos_fn
