@@ -314,8 +314,8 @@ class MyDataloaderExt(data.Dataset):
             h5fextra = h5py.File(extra_path, "r")
 
         #target depth
-        if 'depth_data' in h5f:
-            dense_data = h5f['depth_data']
+        if 'dense_image_data' in h5f:
+            dense_data = h5f['dense_image_data']
             depth = np.array(dense_data[0, :, :])
             mask_array = depth > 10000 # in this software inf distance is zero.
             depth[mask_array] = 0
@@ -351,8 +351,8 @@ class MyDataloaderExt(data.Dataset):
                 assert result['t_wc'].shape == (4, 4), 'file {} - the t_wc is not 4x4'.format(path)
 
         # color data
-        if 'rgbs_data' in h5f:
-            rgb = np.array(h5f['rgbs_data'])
+        if 'rgb_image_data' in h5f:
+            rgb = np.array(h5f['rgb_image_data'])
         elif 'rgb' in h5f:
             rgb = np.array(h5f['rgb'])
         else:
