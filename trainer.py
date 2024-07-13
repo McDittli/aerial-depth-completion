@@ -159,7 +159,10 @@ def create_optimizer_fromstate(parameters,state):
     return optimizer, scheduler
 
 def resume(filename, factory,only_evaluation):
-    checkpoint = torch.load(filename)
+    
+    map_location = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    checkpoint = torch.load(filename, map_location=map_location)
+    # checkpoint = torch.load(filename)
     loss, loss_def = factory.create_loss_fromstate(checkpoint['loss_definition'])
     cdfmodel = factory.create_model_from_state(checkpoint['model_state'])
     cdfmodel, opt_parameters = factory.to_device(cdfmodel)
@@ -325,8 +328,8 @@ class ResultSampleImage():
             utils.save_image(self.image, self.filename)
 
     def update(self,i, input, prediction,target):
-        if (i % self.sample_step) == 0:
-            self.save(input, prediction, target,((i % 2*self.sample_step) == 0))
+        # if (i % self.sample_step) == 0:
+        self.save(input, prediction, target,((i % 2*self.sample_step) == 0))
 
 
 
@@ -342,13 +345,14 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
     rsi = ResultSampleImage(output_folder,epoch,num_image_samples,num_total_samples)
     for i, (input, target, scale) in enumerate(val_loader):
 
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         data_time = time.time() - end
 
         # compute pred
         end = time.time()
 
-        input, target = input.cuda(), target.cuda()
+        # input, target = input.cuda(), target.cuda()
+        input, target = input.to('cpu'), target.to('cpu')
         target_depth = target[:, 0:1, :, :]
         prediction = model(input)
         if prediction[2] is not None:  # d1,c1,d2
@@ -360,7 +364,7 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
             print('ignoring image, no valid pixel')
             continue
 
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         gpu_time = time.time() - end
 
         for cb in range(prediction[0].size(0)):

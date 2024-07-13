@@ -191,7 +191,8 @@ def merge_into_row_with_gt2(rgb, input_depth,input_conf, in_gt_depth , out_depth
 #depth colormap
     d_min = np.min(depth_target_cpu[target_depth_mask])
     d_max = np.max(depth_target_cpu)
-
+    np.savetxt('results/depth_target_cpu.txt', depth_target_cpu, fmt='%d')
+    np.savetxt('results/depth_input_cpu.txt', depth_input_cpu, fmt='%d')
     depth_input_col = colored_depthmap2(depth_input_cpu, d_min, d_max)
     depth_input_col[sparse_depth_mask,:] = 0
     depth_target_col = colored_depthmap2(depth_target_cpu, d_min, d_max)

@@ -314,8 +314,10 @@ class MyDataloaderExt(data.Dataset):
             h5fextra = h5py.File(extra_path, "r")
 
         #target depth
-        if 'dense_image_data' in h5f:
-            dense_data = h5f['dense_image_data']
+        if 'depth_data' in h5f:
+            dense_data = h5f['depth_data']
+        # if 'dense_image_data' in h5f:
+        #     dense_data = h5f['dense_image_data']
             depth = np.array(dense_data[0, :, :])
             mask_array = depth > 10000 # in this software inf distance is zero.
             depth[mask_array] = 0
@@ -351,8 +353,12 @@ class MyDataloaderExt(data.Dataset):
                 assert result['t_wc'].shape == (4, 4), 'file {} - the t_wc is not 4x4'.format(path)
 
         # color data
-        if 'rgb_image_data' in h5f:
-            rgb = np.array(h5f['rgb_image_data'])
+        if 'rgbs_data' in h5f:
+            rgb_data = h5f['rgbs_data']
+        # if 'rgb_image_data' in h5f:
+        #     rgb_data = h5f['rgb_image_data']
+            rgb = np.array(rgb_data[:3, :, :])
+
         elif 'rgb' in h5f:
             rgb = np.array(h5f['rgb'])
         else:
@@ -370,7 +376,11 @@ class MyDataloaderExt(data.Dataset):
 
         #fake sparse data using the spasificator and ground-truth depth
         if 'fd' in type:
-            result['fd'] = self.create_sparse_depth(rgb, depth)
+            # result['fd'] = self.create_sparse_depth(rgb, depth)
+            sparse_data = h5f['sparse_depth']
+            result['fd'] = np.array(sparse_data[:, :])
+            # print(np.count_nonzero(np.array(sparse_data[:, :])))
+
         if 'kfd' in type:
             result['kfd'] = self.create_sparse_depth(rgb, depth)
 

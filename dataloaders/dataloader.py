@@ -87,6 +87,7 @@ class MyDataloader(data.Dataset):
             mask_keep = self.sparsifier.dense_to_sparse(rgb, depth)
             sparse_depth = np.zeros(depth.shape)
             sparse_depth[mask_keep] = depth[mask_keep]
+            print(sparse_depth)
             return sparse_depth
 
     def create_rgbd(self, rgb, depth):
