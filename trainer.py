@@ -1,6 +1,9 @@
 import os
 import csv
 import time
+import pandas as pd
+import numpy as np
+from pathlib import Path
 
 import math
 import utils
@@ -328,8 +331,10 @@ class ResultSampleImage():
             utils.save_image(self.image, self.filename)
 
     def update(self,i, input, prediction,target):
-        # if (i % self.sample_step) == 0:
-        self.save(input, prediction, target,((i % 2*self.sample_step) == 0))
+        if (i % self.sample_step) == 0:
+        # if (i % 6) == 0:
+        #     print('i', i)
+            self.save(input, prediction, target,((i % 2*self.sample_step) == 0))
 
 
 
@@ -343,6 +348,7 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
     end = time.time()
     num_total_samples = len(val_loader)
     rsi = ResultSampleImage(output_folder,epoch,num_image_samples,num_total_samples)
+    predictions = pd.DataFrame()
     for i, (input, target, scale) in enumerate(val_loader):
 
         # torch.cuda.synchronize()
@@ -399,6 +405,27 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
 
         rsi.update(i, input, prediction, target_depth)
 
+        ### save postprocessing
+        # prediction
+        out_depth1 = prediction[0][0,:1,:,:]
+        depth_pred_cpu = np.squeeze(out_depth1.detach().cpu().numpy()).tolist()
+        # input
+        rgb = input[0,:3,:,:]
+        rgb_input = np.squeeze(rgb.detach().cpu().numpy()).tolist()
+        input_depth = input[0,3:4,:,:]
+        sparse_depth_input = np.squeeze(input_depth.detach().cpu().numpy()).tolist()
+        in_gt_depth = target[0,:1,:,:]
+        gt_depth_input = np.squeeze(in_gt_depth.detach().cpu().numpy()).tolist()
+        
+        if prediction[2] is not None:
+            out_depth2 = prediction[2][0,:1,:,:]
+            depth_pred_cpu2 = np.squeeze(out_depth2.detach().cpu().numpy()).tolist()
+            pred = {'id': i, 'out_depth1':depth_pred_cpu , 'out_depth2': depth_pred_cpu2, 'rgb_input': rgb_input, 'sparse_depth_input': sparse_depth_input, 'gt_depth_input': gt_depth_input  }
+        else:
+            pred = {'id': i, 'out_depth1':depth_pred_cpu , 'out_depth2': None , 'rgb_input': rgb_input, 'sparse_depth_input': sparse_depth_input, 'gt_depth_input': gt_depth_input }
+
+        predictions = pd.concat([predictions, pd.DataFrame([pred])], ignore_index=True)
+
     final_result = average_meter[0].average()
     report_epoch_error(os.path.join(output_folder, 'val.csv'), epoch, final_result)
     if prediction[2] is not None:
@@ -406,6 +433,14 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
 
     if conf_recall:
         conf_avg_meter.print(os.path.join(output_folder, 'pr.csv'))
+
+    output_folder = Path(output_folder)
+
+    # Save the predictions 
+    predictions.to_pickle(output_folder.parent / 'depth_predictions.pkl')
+
+    # Print the saved file path
+    print(f"Predictions saved at {output_folder.parent / 'depth_predictions.pkl'}")
 
     return final_result
 
