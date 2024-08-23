@@ -376,10 +376,9 @@ class MyDataloaderExt(data.Dataset):
 
         #fake sparse data using the spasificator and ground-truth depth
         if 'fd' in type:
-            # result['fd'] = self.create_sparse_depth(rgb, depth)
+            # input: customized sparse_depth
             sparse_data = h5f['sparse_depth']
             result['fd'] = np.array(sparse_data[:, :])
-            # print(np.count_nonzero(np.array(sparse_data[:, :])))
 
         if 'kfd' in type:
             result['kfd'] = self.create_sparse_depth(rgb, depth)
