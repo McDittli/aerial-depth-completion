@@ -42,8 +42,10 @@ class CNN(nn.Module):
         # Downsample 1
         ds = 2 
         c1_ds, idx = F.max_pool2d(c1, ds, ds, return_indices=True)
-        # x1_ds = torch.zeros(c1_ds.size()).cuda()
-        x1_ds = torch.zeros(c1_ds.size())
+        if torch.cuda.is_available():
+            x1_ds = torch.zeros(c1_ds.size()).cuda()
+        else:
+            x1_ds = torch.zeros(c1_ds.size())
         for i in range(x1_ds.size(0)):
             for j in range(x1_ds.size(1)):
                 x1_ds[i,j,:,:] = x1[i,j,:,:].view(-1)[idx[i,j,:,:].view(-1)].view(idx.size()[2:])
@@ -56,9 +58,10 @@ class CNN(nn.Module):
         # Downsample 2
         ds = 2 
         c2_dss, idx = F.max_pool2d(c2_ds, ds, ds, return_indices=True)
-        
-        # x2_dss = torch.zeros(c2_dss.size()).cuda()
-        x2_dss = torch.zeros(c2_dss.size())
+        if torch.cuda.is_available():
+            x2_dss = torch.zeros(c2_dss.size()).cuda()
+        else:
+            x2_dss = torch.zeros(c2_dss.size())
         for i in range(x2_dss.size(0)):
             for j in range(x2_dss.size(1)):
                 x2_dss[i,j,:,:] = x2_ds[i,j,:,:].view(-1)[idx[i,j,:,:].view(-1)].view(idx.size()[2:])
@@ -70,9 +73,10 @@ class CNN(nn.Module):
         # Downsample 3
         ds = 2 
         c3_dss, idx = F.max_pool2d(c3_ds, ds, ds, return_indices=True)
-        
-        # x3_dss = torch.zeros(c3_dss.size()).cuda()
-        x3_dss = torch.zeros(c3_dss.size())
+        if torch.cuda.is_available():
+            x3_dss = torch.zeros(c3_dss.size()).cuda()
+        else:
+            x3_dss = torch.zeros(c3_dss.size())
         for i in range(x3_dss.size(0)):
             for j in range(x3_dss.size(1)):
                 x3_dss[i,j,:,:] = x3_ds[i,j,:,:].view(-1)[idx[i,j,:,:].view(-1)].view(idx.size()[2:])

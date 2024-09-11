@@ -199,13 +199,17 @@ def train(train_loader, model, criterion, optimizer,output_folder,  epoch):
     num_total_samples = len(train_loader)
     for i, (input, target, scale) in enumerate(train_loader):
 
-        torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         data_time = time.time() - end
 
         # compute pred
         end = time.time()
 
-        input, target = input.cuda(), target.cuda()
+        if torch.cuda.is_available():
+            input, target = input.cuda(), target.cuda()
+        else:
+            input, target = input.to('cpu'), target.to('cpu')
         target_depth = target[:, 0:1, :, :]
         prediction = model(input)
         if prediction[2] is not None: #d1,c1,d2
@@ -221,7 +225,8 @@ def train(train_loader, model, criterion, optimizer,output_folder,  epoch):
         loss.backward()  # compute gradient and do SGD step
         optimizer.step()
 
-        torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         gpu_time = time.time() - end
 
         for cb in range(prediction[0].size(0)):
@@ -351,14 +356,17 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
     predictions = pd.DataFrame()
     for i, (input, target, scale) in enumerate(val_loader):
 
-        # torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         data_time = time.time() - end
 
         # compute pred
         end = time.time()
 
-        # input, target = input.cuda(), target.cuda()
-        input, target = input.to('cpu'), target.to('cpu')
+        if torch.cuda.is_available():
+            input, target = input.cuda(), target.cuda()
+        else:
+            input, target = input.to('cpu'), target.to('cpu')
         target_depth = target[:, 0:1, :, :]
         prediction = model(input)
         if prediction[2] is not None:  # d1,c1,d2
@@ -370,7 +378,8 @@ def validate(val_loader, model,criterion, epoch,  num_image_samples=4, print_fre
             print('ignoring image, no valid pixel')
             continue
 
-        # torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         gpu_time = time.time() - end
 
         for cb in range(prediction[0].size(0)):
